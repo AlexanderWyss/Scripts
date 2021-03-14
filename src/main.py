@@ -11,7 +11,7 @@ gpu = "gpu\\main.py"
 def as_admin(path):
     with open(path, "rb") as f2:
         ba = bytearray(f2.read())
-    ba[0x15] = ba[0x15] | 0x20
+    ba[0x15] |= 0x20
     with open(path, "wb") as f3:
         f3.write(ba)
 
