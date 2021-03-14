@@ -1,5 +1,8 @@
 import getopt
 import sys
+import subprocess
+
+from elevate import elevate
 
 from gpu import GPU, Status
 
@@ -57,5 +60,11 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    elevate()
+    try:
+        main(sys.argv[1:])
+    except Exception as e:
+        print(e)
+    finally:
+        subprocess.run("timeout 60")
 
