@@ -1,3 +1,6 @@
 /venv/
 /.idea/
 /Tools/
+/build/
+/spec/
+/path/
