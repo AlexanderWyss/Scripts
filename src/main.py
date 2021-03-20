@@ -1,5 +1,5 @@
 import os
-
+import shutil
 import winshell
 import PyInstaller.__main__
 
@@ -9,6 +9,8 @@ tools_path = f"{root_path}\\Tools"
 exec_path = f"{root_path}\\path"
 spec_path = f"{root_path}\\spec"
 build_path = f"{root_path}\\build"
+dotenv_path = f"{root_path}\\.env"
+
 gpu = "gpu\\main.py"
 
 
@@ -41,6 +43,10 @@ def add_to_path(file, name):
     ])
 
 
+def copy_dotenv():
+    shutil.copyfile(dotenv_path, f"{exec_path}\\.env")
+
+
 def create_links():
     if not os.path.exists(tools_path):
         os.mkdir(tools_path)
@@ -49,6 +55,7 @@ def create_links():
     create_link("iGPU", gpu, "-c iGPU")
     create_link("eGPU", gpu, "-c eGPU")
     add_to_path("devl\\util.py", "util")
+    copy_dotenv()
 
 
 if __name__ == '__main__':
