@@ -1,9 +1,26 @@
 import getopt
 import os
 import sys
-import jenkins
 from dotenv import load_dotenv
-import jenkins_job_config
+from jenkins_service import JenkinsService
+from git_service import GitService
+from github_service import GithubService
+
+
+def jenkins():
+    git = GitService(os.getcwd())
+    service = JenkinsService(url='https://jenkins.wyss.tech', username='admin', password=os.getenv('jenkinsPassword'))
+    service.create_job(git.get_name(), git.get_ssh_url(), git.get_http_url())
+    git_webhook()
+
+
+def git_webhook():
+    git = GitService(os.getcwd())
+    if git.is_github():
+        github = GithubService(os.getenv('githubToken'))
+        github.add_webhook(git.get_repo_id(), 'https://jenkins.wyss.tech/github-webhook/')
+    else:
+        print('Not a github repo. Webhook could not be added.')
 
 
 def main(args):
@@ -11,8 +28,9 @@ def main(args):
         name = general_args(args[1:])
         value = args[0]
         if value in ("j", "jenkins"):
-            validate_args(name)
-            create_jenkins_job(name)
+            jenkins()
+        elif value in ("wh", "webhook"):
+            git_webhook()
         else:
             raise Exception("What do you want to do?")
     else:
@@ -37,11 +55,6 @@ def general_args(args):
         else:
             raise Exception(f"Unknown argument: {opt}")
     return name
-
-
-def create_jenkins_job(name):
-    server = jenkins.Jenkins('https://jenkins.wyss.tech', username='admin', password=os.getenv('jenkinsPassword'))
-    server.create_job(name, jenkins_job_config.config.replace("{{name}}", name))
 
 
 if __name__ == '__main__':

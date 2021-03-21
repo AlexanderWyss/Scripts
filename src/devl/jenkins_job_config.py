@@ -13,7 +13,7 @@ config = '''<?xml version='1.1' encoding='UTF-8'?>
       </strategy>
     </jenkins.model.BuildDiscarderProperty>
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.32.0">
-      <projectUrl>https://github.com/AlexanderWyss/{{name}}/</projectUrl>
+      <projectUrl>{{http_url}}/</projectUrl>
       <displayName></displayName>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
     <EnvInjectJobProperty plugin="envinject@2.3.0">
@@ -43,7 +43,7 @@ config = '''<?xml version='1.1' encoding='UTF-8'?>
       <configVersion>2</configVersion>
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
-          <url>git@github.com:AlexanderWyss/{{name}}.git</url>
+          <url>{{ssh_url}}</url>
           <credentialsId>Git_ssh</credentialsId>
         </hudson.plugins.git.UserRemoteConfig>
       </userRemoteConfigs>
@@ -62,3 +62,7 @@ config = '''<?xml version='1.1' encoding='UTF-8'?>
   <triggers/>
   <disabled>false</disabled>
 </flow-definition>'''
+
+
+def template_config(ssh_url, http_url):
+    return config.replace("{{ssh_url}}", ssh_url).replace("{{http_url}}", http_url)
