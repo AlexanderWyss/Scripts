@@ -54,6 +54,7 @@ def create_links():
     create_link("GPU_Startup", gpu, "-s")
     create_link("iGPU", gpu, "-c iGPU")
     create_link("eGPU", gpu, "-c eGPU")
+    add_to_path(gpu, "gpu")
     add_to_path("devl\\util.py", "util")
     copy_dotenv()
 
