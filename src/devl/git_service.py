@@ -38,7 +38,7 @@ class GitService:
         return f"{self._user}/{self._name}"
 
     def init(self, ssh_url):
-        repo = Repo.init()
+        repo = Repo.init(self._work_dir)
         repo.create_remote('origin', ssh_url)
         readme = Path('README.md')
         if not readme.exists():
@@ -46,4 +46,12 @@ class GitService:
         repo.index.add('README.md')
         repo.index.commit('init')
         self._git.execute("git push --set-upstream origin master")
-        print("Created repo")
+        print("Created local repo")
+
+    def from_template(self, target_ssh_url, template_ssh_url='git@github.com:AlexanderWyss/Web-Starter.git'):
+        self._git.execute(f"git clone {template_ssh_url} .")
+        repo = Repo(self._work_dir)
+        origin = repo.remote('origin')
+        origin.set_url(target_ssh_url)
+        origin.push()
+        print("Cloned repo")

@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from jenkins_service import JenkinsService
 from git_service import GitService
 from github_service import GithubService
+from pathlib import Path
 
 
 def jenkins():
@@ -33,6 +34,15 @@ def init_repo(private):
     git.init(repo.ssh_url)
 
 
+def starter(name, private):
+    github = GithubService()
+    repo = github.create_repo(name, private)
+    path = Path(name)
+    path.mkdir()
+    git = GitService(path)
+    git.from_template(repo.ssh_url)
+
+
 def main(args):
     if len(args) > 0:
         name, private = general_args(args[1:])
@@ -43,6 +53,9 @@ def main(args):
             git_webhook()
         elif value in ("i", "init"):
             init_repo(private)
+        elif value in ("s", "starter"):
+            validate_args(name)
+            starter(name, private)
         else:
             raise Exception("What do you want to do?")
     else:
