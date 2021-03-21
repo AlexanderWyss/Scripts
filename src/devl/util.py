@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from jenkins_service import JenkinsService
 from git_service import GitService
 from github_service import GithubService
+
 from templat_service import TemplateService
 
 
@@ -42,12 +43,12 @@ def starter(name, private, subdomain):
     path.mkdir()
     git = GitService(str(path))
     git.from_template(repo.ssh_url)
+    template(path, name, subdomain)
+    git.commit("Edit Template")
     github.add_webhook(repo.full_name)
     jenkins = JenkinsService()
     jenkins.create_job(name, repo.ssh_url, repo.html_url)
     jenkins.build(name)
-    template(path, name, subdomain)
-    git.commit("Edit Template")
 
 
 def template(path: Path, name, subdomain):
@@ -72,8 +73,10 @@ def main(args):
             validate_args(name)
             template(Path(work_dir), name, subdomain)
         else:
+            printHelp()
             raise Exception("What do you want to do?")
     else:
+        printHelp()
         raise Exception("What do you want to do?")
 
 
@@ -105,8 +108,24 @@ def general_args(args):
         elif opt in ("-w", "--workdir"):
             work_dir = arg
         else:
+            printHelp()
             raise Exception(f"Unknown argument: {opt}")
     return name, private, auto_commit_all, subdomain, work_dir
+
+
+def printHelp():
+    print("Util Scripts")
+    print("j/jenkins : create jenkins job and create Webhook [Git repo required] P:(w)")
+    print("wh/webhook : creates jenkins Webhook [Git repo required] P:(w)")
+    print("i/init : create git repo locally and github in current dir P:(w, p, a)")
+    print("s/starter : creates a project form Web-Starter template P:(n, p, d)")
+    print("t/template : templates a Web-Starter project P:(w, n, d)")
+    print("Params: (P:)")
+    print("-n/--name= : Name")
+    print("-p/--private : created Github repo is set to private")
+    print("-a/--all : auto commit all")
+    print("-d/--domain= : subdomain of site")
+    print("-w/--workdir= : working directory")
 
 
 if __name__ == '__main__':
