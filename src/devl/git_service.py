@@ -1,10 +1,13 @@
+import os
 import re
 
 from git import Git
 
 
 class GitService:
-    def __init__(self, work_dir):
+    def __init__(self, work_dir=None):
+        if work_dir is None:
+            work_dir = os.getcwd()
         self._git = Git(work_dir)
         self._remote_url = self._git.execute("git remote get-url origin")
         matcher = re.match(r"git@(?P<domain>.+):(?P<user>.+)/(?P<name>.+).git", self._remote_url)

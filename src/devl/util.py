@@ -8,29 +8,37 @@ from github_service import GithubService
 
 
 def jenkins():
-    git = GitService(os.getcwd())
-    service = JenkinsService(url='https://jenkins.wyss.tech', username='admin', password=os.getenv('jenkinsPassword'))
+    git = GitService()
+    service = JenkinsService()
     service.create_job(git.get_name(), git.get_ssh_url(), git.get_http_url())
     git_webhook()
 
 
 def git_webhook():
-    git = GitService(os.getcwd())
+    git = GitService()
     if git.is_github():
-        github = GithubService(os.getenv('githubToken'))
-        github.add_webhook(git.get_repo_id(), 'https://jenkins.wyss.tech/github-webhook/')
+        github = GithubService()
+        github.add_webhook(git.get_repo_id())
     else:
         print('Not a github repo. Webhook could not be added.')
 
 
+def init_repo(private):
+    name = os.path.basename(os.getcwd())
+    github = GithubService()
+    repo = github.create_repo('ScriptTestRepo', private)
+
+
 def main(args):
     if len(args) > 0:
-        name = general_args(args[1:])
+        name, private = general_args(args[1:])
         value = args[0]
         if value in ("j", "jenkins"):
             jenkins()
         elif value in ("wh", "webhook"):
             git_webhook()
+        elif value in ("i", "init"):
+            init_repo(private)
         else:
             raise Exception("What do you want to do?")
     else:
@@ -45,16 +53,19 @@ def validate_args(*args):
 
 def general_args(args):
     name = None
-    opts, args = getopt.getopt(args, "n:", ["name="])
+    private = False
+    opts, args = getopt.getopt(args, "n:p", ["name=", "private"])
     for opt, arg in opts:
         if opt in ("-n", "--name"):
             if arg == ".":
                 name = os.path.basename(os.getcwd())
             else:
                 name = arg
+        elif opt in ("-p", "--private"):
+            private = True
         else:
             raise Exception(f"Unknown argument: {opt}")
-    return name
+    return name, private
 
 
 if __name__ == '__main__':

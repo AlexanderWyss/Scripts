@@ -1,9 +1,13 @@
+import os
+
 import jenkins
 import jenkins_job_config
 
 
 class JenkinsService:
-    def __init__(self, url, username, password):
+    def __init__(self, url='https://jenkins.wyss.tech', username='admin', password=None):
+        if password is None:
+            password = os.getenv('jenkinsPassword')
         self._server = jenkins.Jenkins(url=url, username=username, password=password)
 
     def create_job(self, name, ssh_url, http_url):
