@@ -49,6 +49,7 @@ def starter(name, private, subdomain):
     jenkins = JenkinsService()
     jenkins.create_job(name, repo.ssh_url, repo.html_url)
     jenkins.build(name)
+    print("https://ap.www.namecheap.com/Domains/DomainControlPanel/wyss.tech/advancedns")
 
 
 def template(path: Path, name, subdomain):
