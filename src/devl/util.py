@@ -48,7 +48,6 @@ def starter(name, private, subdomain):
     jenkins.build(name)
     template(path, name, subdomain)
     git.commit("Edit Template")
-    # TODO open namecheap dns
 
 
 def template(path: Path, name, subdomain):
