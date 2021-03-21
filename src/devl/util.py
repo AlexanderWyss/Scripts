@@ -9,6 +9,7 @@ from github_service import GithubService
 
 def jenkins():
     git = GitService()
+    git.init_from_remote()
     service = JenkinsService()
     service.create_job(git.get_name(), git.get_ssh_url(), git.get_http_url())
     git_webhook()
@@ -16,6 +17,7 @@ def jenkins():
 
 def git_webhook():
     git = GitService()
+    git.init_from_remote()
     if git.is_github():
         github = GithubService()
         github.add_webhook(git.get_repo_id())
@@ -26,7 +28,9 @@ def git_webhook():
 def init_repo(private):
     name = os.path.basename(os.getcwd())
     github = GithubService()
-    repo = github.create_repo('ScriptTestRepo', private)
+    repo = github.create_repo(name, private)
+    git = GitService()
+    git.init(repo.ssh_url)
 
 
 def main(args):
