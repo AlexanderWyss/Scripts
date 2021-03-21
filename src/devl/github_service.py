@@ -18,4 +18,6 @@ class GithubService:
         print(f"Created Webhook {repo_id}")
 
     def create_repo(self, name, private):
-        return self.github.get_user().create_repo(name=name, private=private)
+        repo = self.github.get_user().create_repo(name=name, private=private)
+        print("Created Github repo")
+        return repo
