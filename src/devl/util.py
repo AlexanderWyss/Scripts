@@ -1,11 +1,12 @@
 import getopt
 import os
 import sys
+from pathlib import Path
 from dotenv import load_dotenv
 from jenkins_service import JenkinsService
 from git_service import GitService
 from github_service import GithubService
-from pathlib import Path
+from templat_service import TemplateService
 
 
 def jenkins_job(work_dir):
@@ -34,7 +35,7 @@ def init_repo(work_dir, private, auto_commit_all):
     git.init(repo.ssh_url, auto_commit_all)
 
 
-def starter(name, private):
+def starter(name, private, subdomain):
     github = GithubService()
     repo = github.create_repo(name, private)
     path = Path(name)
@@ -45,13 +46,20 @@ def starter(name, private):
     jenkins = JenkinsService()
     jenkins.create_job(name, repo.ssh_url, repo.html_url)
     jenkins.build(name)
+    template(path, name, subdomain)
+    git.commit("Edit Template")
+    # TODO open namecheap dns
+
+
+def template(path: Path, name, subdomain):
+    templater = TemplateService()
+    templater.template(path, name, subdomain)
 
 
 def main(args):
     if len(args) > 0:
-        name, private, auto_commit_all = general_args(args[1:])
         value = args[0]
-        work_dir = os.getcwd()
+        name, private, auto_commit_all, subdomain, work_dir = general_args(args[1:])
         if value in ("j", "jenkins"):
             jenkins_job(work_dir)
         elif value in ("wh", "webhook"):
@@ -60,7 +68,10 @@ def main(args):
             init_repo(work_dir, private, auto_commit_all)
         elif value in ("s", "starter"):
             validate_args(name)
-            starter(name, private)
+            starter(name, private, subdomain)
+        elif value in ("t", "template"):
+            validate_args(name)
+            template(Path(work_dir), name, subdomain)
         else:
             raise Exception("What do you want to do?")
     else:
@@ -77,7 +88,9 @@ def general_args(args):
     name = None
     private = False
     auto_commit_all = False
-    opts, args = getopt.getopt(args, "n:pa", ["name=", "private", "all"])
+    subdomain = None
+    work_dir = os.getcwd()
+    opts, args = getopt.getopt(args, "n:pad:w:", ["name=", "private", "all", "domain=", "workdir="])
     for opt, arg in opts:
         if opt in ("-n", "--name"):
             if arg == ".":
@@ -88,9 +101,13 @@ def general_args(args):
             private = True
         elif opt in ("-a", "--all"):
             auto_commit_all = True
+        elif opt in ("-d", "--domain"):
+            subdomain = arg
+        elif opt in ("-w", "--workdir"):
+            work_dir = arg
         else:
             raise Exception(f"Unknown argument: {opt}")
-    return name, private, auto_commit_all
+    return name, private, auto_commit_all, subdomain, work_dir
 
 
 if __name__ == '__main__':

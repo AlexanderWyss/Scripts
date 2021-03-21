@@ -54,3 +54,8 @@ class GitService:
         shutil.rmtree(self._work_dir + '/.git', ignore_errors=True)
         self.init(target_ssh_url, True)
         print("Created Repo from templated")
+
+    def commit(self, message):
+        self._git.execute('git add -A')
+        self._git.execute(f'git commit -m "{message}"')
+        self._git.execute('git push')
