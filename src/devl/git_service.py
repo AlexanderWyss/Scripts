@@ -1,4 +1,4 @@
-import os
+import shutil
 import re
 from pathlib import Path
 from git import Git, Repo
@@ -35,21 +35,22 @@ class GitService:
     def get_repo_id(self):
         return f"{self._user}/{self._name}"
 
-    def init(self, ssh_url):
+    def init(self, ssh_url, auto_commit_all=False):
         repo = Repo.init(self._work_dir)
         repo.create_remote('origin', ssh_url)
-        readme = Path('README.md')
-        if not readme.exists():
-            readme.touch()
-        repo.index.add('README.md')
+        if auto_commit_all:
+            self._git.execute('git add -A')
+        else:
+            readme = Path(self._work_dir + '/README.md')
+            if not readme.exists():
+                readme.touch()
+            repo.index.add('README.md')
         repo.index.commit('init')
         self._git.execute("git push --set-upstream origin master")
         print("Created local repo")
 
     def from_template(self, target_ssh_url, template_ssh_url='git@github.com:AlexanderWyss/Web-Starter.git'):
         self._git.execute(f"git clone {template_ssh_url} .")
-        repo = Repo(self._work_dir)
-        origin = repo.remote('origin')
-        origin.set_url(target_ssh_url)
-        origin.push()
-        print("Cloned repo")
+        shutil.rmtree(self._work_dir + '/.git', ignore_errors=True)
+        self.init(target_ssh_url, True)
+        print("Created Repo from templated")

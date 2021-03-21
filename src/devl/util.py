@@ -26,12 +26,12 @@ def git_webhook(work_dir):
         print('Not a github repo. Webhook could not be added.')
 
 
-def init_repo(work_dir, private):
+def init_repo(work_dir, private, auto_commit_all):
     name = os.path.basename(os.getcwd())
     github = GithubService()
     repo = github.create_repo(name, private)
     git = GitService(work_dir)
-    git.init(repo.ssh_url)
+    git.init(repo.ssh_url, auto_commit_all)
 
 
 def starter(name, private):
@@ -39,7 +39,7 @@ def starter(name, private):
     repo = github.create_repo(name, private)
     path = Path(name)
     path.mkdir()
-    git = GitService(path)
+    git = GitService(str(path))
     git.from_template(repo.ssh_url)
     github.add_webhook(repo.full_name)
     jenkins = JenkinsService()
@@ -49,7 +49,7 @@ def starter(name, private):
 
 def main(args):
     if len(args) > 0:
-        name, private = general_args(args[1:])
+        name, private, auto_commit_all = general_args(args[1:])
         value = args[0]
         work_dir = os.getcwd()
         if value in ("j", "jenkins"):
@@ -57,7 +57,7 @@ def main(args):
         elif value in ("wh", "webhook"):
             git_webhook(work_dir)
         elif value in ("i", "init"):
-            init_repo(work_dir, private)
+            init_repo(work_dir, private, auto_commit_all)
         elif value in ("s", "starter"):
             validate_args(name)
             starter(name, private)
@@ -76,7 +76,8 @@ def validate_args(*args):
 def general_args(args):
     name = None
     private = False
-    opts, args = getopt.getopt(args, "n:p", ["name=", "private"])
+    auto_commit_all = False
+    opts, args = getopt.getopt(args, "n:pa", ["name=", "private", "all"])
     for opt, arg in opts:
         if opt in ("-n", "--name"):
             if arg == ".":
@@ -85,9 +86,11 @@ def general_args(args):
                 name = arg
         elif opt in ("-p", "--private"):
             private = True
+        elif opt in ("-a", "--all"):
+            auto_commit_all = True
         else:
             raise Exception(f"Unknown argument: {opt}")
-    return name, private
+    return name, private, auto_commit_all
 
 
 if __name__ == '__main__':
