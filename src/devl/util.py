@@ -8,16 +8,16 @@ from github_service import GithubService
 from pathlib import Path
 
 
-def jenkins():
-    git = GitService()
+def jenkins_job(work_dir):
+    git = GitService(work_dir)
     git.init_from_remote()
-    service = JenkinsService()
-    service.create_job(git.get_name(), git.get_ssh_url(), git.get_http_url())
-    git_webhook()
+    jenkins = JenkinsService()
+    jenkins.create_job(git.get_name(), git.get_ssh_url(), git.get_http_url())
+    git_webhook(work_dir)
 
 
-def git_webhook():
-    git = GitService()
+def git_webhook(work_dir):
+    git = GitService(work_dir)
     git.init_from_remote()
     if git.is_github():
         github = GithubService()
@@ -26,11 +26,11 @@ def git_webhook():
         print('Not a github repo. Webhook could not be added.')
 
 
-def init_repo(private):
+def init_repo(work_dir, private):
     name = os.path.basename(os.getcwd())
     github = GithubService()
     repo = github.create_repo(name, private)
-    git = GitService()
+    git = GitService(work_dir)
     git.init(repo.ssh_url)
 
 
@@ -41,18 +41,23 @@ def starter(name, private):
     path.mkdir()
     git = GitService(path)
     git.from_template(repo.ssh_url)
+    github.add_webhook(repo.full_name)
+    jenkins = JenkinsService()
+    jenkins.create_job(name, repo.ssh_url, repo.html_url)
+    jenkins.build(name)
 
 
 def main(args):
     if len(args) > 0:
         name, private = general_args(args[1:])
         value = args[0]
+        work_dir = os.getcwd()
         if value in ("j", "jenkins"):
-            jenkins()
+            jenkins_job(work_dir)
         elif value in ("wh", "webhook"):
-            git_webhook()
+            git_webhook(work_dir)
         elif value in ("i", "init"):
-            init_repo(private)
+            init_repo(work_dir, private)
         elif value in ("s", "starter"):
             validate_args(name)
             starter(name, private)

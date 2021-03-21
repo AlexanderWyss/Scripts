@@ -5,9 +5,7 @@ from git import Git, Repo
 
 
 class GitService:
-    def __init__(self, work_dir=None):
-        if work_dir is None:
-            work_dir = os.getcwd()
+    def __init__(self, work_dir):
         self._work_dir = work_dir
         self._git = Git(work_dir)
         self._remote_url = None
