@@ -63,6 +63,12 @@ def add_auth(name, subdomain, htpasswd_suffix):
     service.create_auth_config(subdomain, name, htpasswd_suffix)
 
 
+def list_auth():
+    service = ProxyService()
+    for auth in service.get_auth_list():
+        print(auth)
+
+
 def main(args):
     if len(args) > 0:
         value = args[0]
@@ -82,6 +88,8 @@ def main(args):
         elif value in ("a", "auth"):
             validate_args(subdomain)
             add_auth(name, subdomain, htpasswd_suffix)
+        elif value in ("la", "list-auth"):
+            list_auth()
         else:
             print_help()
             raise Exception("What do you want to do?")
@@ -134,6 +142,7 @@ def print_help():
     print("s/starter : creates a project form Web-Starter template P:(n, p, d)")
     print("t/template : templates a Web-Starter project P:(w, n, d)")
     print("a/auth : add proxy auth for domain P:(n, d, h)")
+    print("la/list-auth : lists registered auth on proxy P:()")
     print("Params: (P:)")
     print("-n/--name= : Name")
     print("-p/--private : created Github repo is set to private")

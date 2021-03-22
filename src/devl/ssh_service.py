@@ -20,12 +20,12 @@ class SshService:
     def exit(self):
         self._client.close()
 
-    def exec(self, command):
+    def exec(self, command) -> str:
         stdin, stdout, stderr = types(self._client.exec_command(command))
         self._handle_error(stderr)
         return self._handle_out(stdout)
 
-    def sudo_exec(self, command):
+    def sudo_exec(self, command) -> str:
         stdin, stdout, stderr = types(self._client.exec_command(f"sudo -S {command}"))
         if stdin.writable():
             stdin.write(os.getenv('sudoPass') + '\n')
@@ -41,6 +41,6 @@ class SshService:
 
     def _handle_out(self, stdout):
         if stdout.readable():
-            return stdout.read()
+            return stdout.read().decode()
         else:
             return None

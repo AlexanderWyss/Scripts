@@ -24,3 +24,14 @@ class ProxyService:
             htpasswd_suffix = ''
         return f'auth_basic "{name}";\n' + \
                f'auth_basic_user_file /etc/customauth/.htpasswd{htpasswd_suffix};'
+
+    def get_auth_list(self):
+        ssh = SshService()
+        try:
+            ssh.login()
+            split = ssh.exec(f"ls {self._vhost_path}").split('\n')
+            split.remove('default')
+            split.remove('')
+            return split
+        finally:
+            ssh.exit()
