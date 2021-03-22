@@ -58,15 +58,20 @@ def template(path: Path, name, subdomain):
     templater.template(path, name, subdomain)
 
 
-def add_auth(name, subdomain, htpasswd_suffix):
+def add_auth(name, domain, htpasswd_suffix):
     service = ProxyService()
-    service.create_auth_config(subdomain, name, htpasswd_suffix)
+    service.create_auth_config(domain, name, htpasswd_suffix)
 
 
 def list_auth():
     service = ProxyService()
     for auth in service.get_auth_list():
         print(auth)
+
+
+def remove_auth(domain):
+    service = ProxyService()
+    service.remove_auth_config(domain)
 
 
 def main(args):
@@ -88,6 +93,9 @@ def main(args):
         elif value in ("a", "auth"):
             validate_args(subdomain)
             add_auth(name, subdomain, htpasswd_suffix)
+        elif value in ("ra", "remove-auth"):
+            validate_args(subdomain)
+            remove_auth(subdomain)
         elif value in ("la", "list-auth"):
             list_auth()
         else:
@@ -143,6 +151,7 @@ def print_help():
     print("t/template : templates a Web-Starter project P:(w, n, d)")
     print("a/auth : add proxy auth for domain P:(n, d, h)")
     print("la/list-auth : lists registered auth on proxy P:()")
+    print("ra/remove-auth : remove proxy auth for domain P:(d)")
     print("Params: (P:)")
     print("-n/--name= : Name")
     print("-p/--private : created Github repo is set to private")

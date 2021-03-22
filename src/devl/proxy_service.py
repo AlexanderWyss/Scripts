@@ -12,8 +12,7 @@ class ProxyService:
             ssh.login()
             ssh.exec(f"printf '{self.template_file(name, htpasswd_suffix)}' > {self._vhost_path}/{domain}")
             print(f'Created file: {self._vhost_path}/{domain}')
-            print('Restarting proxy')
-            ssh.sudo_exec("docker restart proxy")
+            self.restart_proxy(ssh)
         finally:
             ssh.exit()
 
@@ -35,3 +34,17 @@ class ProxyService:
             return split
         finally:
             ssh.exit()
+
+    def remove_auth_config(self, domain):
+        ssh = SshService()
+        try:
+            ssh.login()
+            ssh.exec(f"rm {self._vhost_path}/{domain}")
+            print(f'Removed file: {self._vhost_path}/{domain}')
+            self.restart_proxy(ssh)
+        finally:
+            ssh.exit()
+
+    def restart_proxy(self, ssh):
+        print('Restarting proxy')
+        ssh.sudo_exec("docker restart proxy")
