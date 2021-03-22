@@ -1,12 +1,13 @@
 import getopt
 import os
 import sys
+import traceback
 from pathlib import Path
 from dotenv import load_dotenv
 from jenkins_service import JenkinsService
 from git_service import GitService
 from github_service import GithubService
-
+from proxy_service import ProxyService
 from templat_service import TemplateService
 
 
@@ -57,10 +58,15 @@ def template(path: Path, name, subdomain):
     templater.template(path, name, subdomain)
 
 
+def add_auth(name, subdomain, htpasswd_suffix):
+    service = ProxyService()
+    service.create_auth_config(subdomain, name, htpasswd_suffix)
+
+
 def main(args):
     if len(args) > 0:
         value = args[0]
-        name, private, auto_commit_all, subdomain, work_dir = general_args(args[1:])
+        name, private, auto_commit_all, subdomain, work_dir, htpasswd_suffix = general_args(args[1:])
         if value in ("j", "jenkins"):
             jenkins_job(work_dir)
         elif value in ("wh", "webhook"):
@@ -73,11 +79,14 @@ def main(args):
         elif value in ("t", "template"):
             validate_args(name)
             template(Path(work_dir), name, subdomain)
+        elif value in ("a", "auth"):
+            validate_args(subdomain)
+            add_auth(name, subdomain, htpasswd_suffix)
         else:
-            printHelp()
+            print_help()
             raise Exception("What do you want to do?")
     else:
-        printHelp()
+        print_help()
         raise Exception("What do you want to do?")
 
 
@@ -87,13 +96,14 @@ def validate_args(*args):
             raise Exception("Required arg missing.")
 
 
-def general_args(args):
+def general_args(args) -> object:
     name = None
     private = False
     auto_commit_all = False
     subdomain = None
     work_dir = os.getcwd()
-    opts, args = getopt.getopt(args, "n:pad:w:", ["name=", "private", "all", "domain=", "workdir="])
+    htpasswd_suffix = None
+    opts, args = getopt.getopt(args, "n:pad:w:h:", ["name=", "private", "all", "domain=", "workdir=", "htpasswd="])
     for opt, arg in opts:
         if opt in ("-n", "--name"):
             if arg == ".":
@@ -108,25 +118,29 @@ def general_args(args):
             subdomain = arg
         elif opt in ("-w", "--workdir"):
             work_dir = arg
+        elif opt in ("-h", "--htpasswd"):
+            htpasswd_suffix = arg
         else:
-            printHelp()
+            print_help()
             raise Exception(f"Unknown argument: {opt}")
-    return name, private, auto_commit_all, subdomain, work_dir
+    return name, private, auto_commit_all, subdomain, work_dir, htpasswd_suffix
 
 
-def printHelp():
+def print_help():
     print("Util Scripts")
     print("j/jenkins : create jenkins job and create Webhook [Git repo required] P:(w)")
     print("wh/webhook : creates jenkins Webhook [Git repo required] P:(w)")
     print("i/init : create git repo locally and github in current dir P:(w, p, a)")
     print("s/starter : creates a project form Web-Starter template P:(n, p, d)")
     print("t/template : templates a Web-Starter project P:(w, n, d)")
+    print("a/auth : add proxy auth for domain P:(n, d, h)")
     print("Params: (P:)")
     print("-n/--name= : Name")
     print("-p/--private : created Github repo is set to private")
     print("-a/--all : auto commit all")
     print("-d/--domain= : subdomain of site")
     print("-w/--workdir= : working directory")
+    print("-h/--htpasswd= : password file suffix")
 
 
 if __name__ == '__main__':
@@ -135,4 +149,5 @@ if __name__ == '__main__':
         load_dotenv()
         main(sys.argv[1:])
     except Exception as e:
+        traceback.print_exc()
         print(e)
