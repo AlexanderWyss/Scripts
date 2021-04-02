@@ -7,29 +7,33 @@ from elevate import elevate
 from gpu import GPU, Status
 
 
-def startup():
+def startup() -> bool:
     print("Auto select GPU")
     e_gpu = GPU.e_gpu()
     i_gpu = GPU.i_gpu()
+    return_value = False
     if e_gpu.status == Status.Missing:
-        i_gpu.enable()
+        return_value = return_value or i_gpu.enable()
     else:
-        e_gpu.enable()
-        i_gpu.disable()
+        return_value = return_value or e_gpu.enable()
+        return_value = return_value or i_gpu.disable()
+    return return_value
 
 
-def select_card(card):
+def select_card(card) -> bool:
     print(f"Select card: {card}")
     e_gpu = GPU.e_gpu()
     i_gpu = GPU.i_gpu()
+    return_value = False
     if card == "eGPU":
-        e_gpu.enable()
-        i_gpu.disable()
+        return_value = return_value or e_gpu.enable()
+        return_value = return_value or i_gpu.disable()
     elif card == "iGPU":
-        i_gpu.enable()
-        e_gpu.disable()
+        return_value = return_value or i_gpu.enable()
+        return_value = return_value or e_gpu.disable()
     else:
         raise Exception(f"Unknown card: {card}")
+    return return_value
 
 
 def get_gpu(card) -> GPU:
@@ -41,18 +45,18 @@ def get_gpu(card) -> GPU:
         raise Exception(f"Unknown card: {card}")
 
 
-def main(argv):
+def main(argv) -> bool:
     opts, args = getopt.getopt(argv, "sc:e:d:", ["startup", "card=", "enable=", "disable="])
     if len(opts) == 1:
         opt, arg = opts[0]
         if opt in ("-s", "--startup"):
-            startup()
+            return startup()
         elif opt in ("-c", "--card"):
-            select_card(arg)
+            return select_card(arg)
         elif opt in ("-e", "--enable"):
-            get_gpu(arg).enable()
+            return get_gpu(arg).enable()
         elif opt in ("-d", "--disable"):
-            get_gpu(arg).disable()
+            return get_gpu(arg).disable()
         else:
             raise Exception(f"Unknown argument: {opt}")
     else:
@@ -61,10 +65,12 @@ def main(argv):
 
 if __name__ == '__main__':
     elevate()
+    timeout = 60
     try:
-        main(sys.argv[1:])
+        log_interesting = main(sys.argv[1:])
+        if not log_interesting:
+            timeout = 10
     except Exception as e:
         print(e)
     finally:
-        subprocess.run("timeout 60")
-
+        subprocess.run(f"timeout {timeout}")

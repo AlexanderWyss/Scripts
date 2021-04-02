@@ -40,23 +40,28 @@ class GPU(object):
                 raise Exception(
                     f"Not specific enough id. Matching devices: '{matching_device_amount}', id: '{self.device_id}'")
 
-    def enable(self):
+    def enable(self) -> bool:
         if self.status == Status.Disabled:
             print(f"Enabling {self.gpu_type} {self.name}")
             self._run("enable", log=True)
+            return True
         elif self.status == Status.Enabled:
             print(f"{self.gpu_type} {self.name} already enabled.")
+            return False
         else:
             raise Exception(f"Unexpected {self.gpu_type} status: '{self.status.name}', id: {self.device_id}")
 
-    def disable(self):
+    def disable(self) -> bool:
         if self.status == Status.Enabled:
             print(f"Disabling {self.gpu_type} {self.name}")
             self._run("disable", log=True)
+            return True
         elif self.status == Status.Disabled:
             print(f"{self.gpu_type} {self.name} already disabled.")
+            return False
         elif self.status == Status.Missing:
             print(f"{self.gpu_type} cannot be disabled. GPU not found.")
+            return False
         else:
             raise Exception(f"Unexpected {self.gpu_type} status: '{self.status.name}', id: {self.device_id}")
 
