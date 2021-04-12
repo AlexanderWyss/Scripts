@@ -13,10 +13,10 @@ def startup() -> bool:
     i_gpu = GPU.i_gpu()
     return_value = False
     if e_gpu.status == Status.Missing:
-        return_value = return_value or i_gpu.enable()
+        return_value = return_value | i_gpu.enable()
     else:
-        return_value = return_value or e_gpu.enable()
-        return_value = return_value or i_gpu.disable()
+        return_value = return_value & e_gpu.enable()
+        return_value = return_value & i_gpu.disable()
     return return_value
 
 
@@ -24,16 +24,15 @@ def select_card(card) -> bool:
     print(f"Select card: {card}")
     e_gpu = GPU.e_gpu()
     i_gpu = GPU.i_gpu()
-    return_value = False
     if card == "eGPU":
-        return_value = return_value or e_gpu.enable()
-        return_value = return_value or i_gpu.disable()
+        e_gpu.enable()
+        i_gpu.disable()
     elif card == "iGPU":
-        return_value = return_value or i_gpu.enable()
-        return_value = return_value or e_gpu.disable()
+        i_gpu.enable()
+        e_gpu.disable()
     else:
         raise Exception(f"Unknown card: {card}")
-    return return_value
+    return False
 
 
 def get_gpu(card) -> GPU:
