@@ -12,7 +12,7 @@ class Status(Enum):
 class GPU(object):
     @staticmethod
     def e_gpu():
-        return GPU("PCI\\VEN_10DE&DEV_13C2&SUBSYS_36831458&REV_A1", "eGPU")
+        return GPU("PCI\\VEN_10DE&DEV_2488&SUBSYS_39011462&REV_A1", "eGPU")
 
     @staticmethod
     def i_gpu():
